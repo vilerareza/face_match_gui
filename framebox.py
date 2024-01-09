@@ -6,6 +6,8 @@ from threading import Condition, Thread
 import cv2 as cv
 import dlib
 import numpy as np
+
+from kivymd.app import App
 from kivy.clock import Clock
 from kivy.graphics import Rectangle
 from kivy.graphics.texture import Texture
@@ -49,6 +51,7 @@ class FrameBox(Image):
             print ('Ready')
             # Start the camera stream
             self.play()
+            print(App.get_running_app().manager)
 
 
     def play(self):
@@ -78,8 +81,12 @@ class FrameBox(Image):
     def play_(self):
 
         try:
+
+            #self.rtsp = self.manager.rtsp
+
             # Initialize capture object
-            self.video_cap = cv.VideoCapture(0)
+            # self.video_cap = cv.VideoCapture(0)
+            self.video_cap = cv.VideoCapture('rtsp://192.168.1.39:554/Streaming/channels/101')
 
             ### Get video properties            
             frame_w = int(self.video_cap.get(cv.CAP_PROP_FRAME_WIDTH))

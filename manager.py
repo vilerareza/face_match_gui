@@ -11,5 +11,9 @@ class Manager(BoxLayout):
 
     video_box = ObjectProperty()
 
+    def __init__(self, rtsp='', **kwargs):
+        super().__init__(**kwargs)
+        self.rtsp = rtsp
+
     def stop(self):
         pass
