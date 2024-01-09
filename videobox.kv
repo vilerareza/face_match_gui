@@ -1,0 +1,23 @@
+<VideoBox>:
+    
+    manager: app.manager
+    frame_box: frame_box_kv
+    header_bar: header_bar_kv
+
+    orientation: 'vertical'
+
+    HeaderBar:
+        id: header_bar_kv
+        size_hint: (1, None) 
+        height : dp(60)
+        frame_box: frame_box_kv
+        #pos_hint: {'center_x' : 0.5}
+        #y : root.y
+
+    FrameBox:
+        id : frame_box_kv
+        pos_hint : {'center_x':0.5, 'center_y': 0.5}
+        #pos_hint : {'center_x':0.5}
+        size_hint :(1.0, 1.0) 
+        header_bar : header_bar_kv
+

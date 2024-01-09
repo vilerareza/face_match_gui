@@ -1,0 +1,31 @@
+<HeaderBar>:
+
+    manager: app.manager
+    title_img : id_title_image
+
+    canvas.before :
+        Color : 
+            rgb : (0,0,0)
+        Rectangle :
+            size : self.size
+            pos : self.pos
+
+    Label:
+        id: score_label
+        text: root.score_text
+        size_hint: (None, None)
+        size: (dp(220), dp(30))
+        right: root.right-dp(10)
+        center_y:root.center_y
+        text_size : self.size
+        font_size: 22
+        font_family: "arial"
+
+    Image:
+        id: id_title_image
+        source : 'images/title.png'
+        size_hint: (None, None)
+        size: (dp(600), dp(25))
+        # x: root.x+dp(30)
+        center_y:root.center_y
+        pos_hint : {'center_x':0.5, 'center_y': 0.5}
