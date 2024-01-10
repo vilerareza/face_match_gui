@@ -51,7 +51,6 @@ class FrameBox(Image):
             print ('Ready')
             # Start the camera stream
             self.play()
-            print(App.get_running_app().manager)
 
 
     def play(self):
@@ -78,6 +77,11 @@ class FrameBox(Image):
                 self.condition.notify_all()
 
 
+    def init_video_cap(self):
+        # video_cap = cv.VideoCapture(0)
+        video_cap = cv.VideoCapture('rtsp://admin:Smartcity07@192.168.1.39:554/Streaming/channels/101')
+        return video_cap
+
     def play_(self):
 
         try:
@@ -85,9 +89,7 @@ class FrameBox(Image):
             # self.rtsp = self.manager.rtsp
 
             # Initialize capture object
-            # self.video_cap = cv.VideoCapture(0)
-            self.video_cap = cv.VideoCapture('rtsp://admin:Smartcity07@192.168.1.39:554/Streaming/channels/101')
-
+            self.video_cap = self.init_video_cap()
             ### Get video properties            
             # frame_w = int(self.video_cap.get(cv.CAP_PROP_FRAME_WIDTH))
             # frame_h = int(self.video_cap.get(cv.CAP_PROP_FRAME_HEIGHT))
@@ -114,83 +116,91 @@ class FrameBox(Image):
         ### Video Loop
         while (self.video_cap.isOpened()):
 
-            if self.state=='pause':
-                with self.condition:
-                    self.condition.wait()
+            try:
+                if self.state=='pause':
+                    with self.condition:
+                        self.condition.wait()
 
-            elif self.state == 'stop':
-                # Stop
-                # Release video capture object
-                self.video_cap.release()
-                # Create blank texture
-                self.texture = Texture.create()
-                break
+                elif self.state == 'stop':
+                    # Stop
+                    # Release video capture object
+                    self.video_cap.release()
+                    # Create blank texture
+                    self.texture = Texture.create()
+                    break
 
-            # Reading frame
-            t1=time.time()
-            ret, frame = self.video_cap.read()
+                # Reading frame
+                t1=time.time()
+                ret, frame = self.video_cap.read()
 
-            if ret:
-                # Resize the frame to the adjusted size
-                frame = cv.resize(frame, (frame_w, frame_h))
-                print(frame_w, frame_h)
-                faces, frame = self.detect_face(frame)
+                if ret:
+                    # Resize the frame to the adjusted size
+                    frame = cv.resize(frame, (frame_w, frame_h))
+                    # print(frame_w, frame_h)
+                    faces, frame = self.detect_face(frame)
 
-                if len(faces)==2:
+                    if len(faces)==2:
 
-                    vectors = []
-                    for face in faces:
-                        face = face[:,:,::-1]
-                        vector = face_recognition.api.face_encodings(face)
-                        vectors.append(vector)
+                        vectors = []
+                        for face in faces:
+                            face = face[:,:,::-1]
+                            vector = face_recognition.api.face_encodings(face)
+                            vectors.append(vector)
 
-                    if len(vectors[0]) > 0 and len (vectors[1]) > 0:
-                        distance = face_recognition.api.face_distance([vectors[0][0]], vectors[1][0])
-                        # result = face_recognition.api.compare_faces([vectors[0][0]], vectors[1][0])
-                        # print (distance, result)
-                        # score = self.face_confidence(distance[0])
-                        score = 1.3 - distance[0]
-                        score = min(1.0, score)
+                        if len(vectors[0]) > 0 and len (vectors[1]) > 0:
+                            distance = face_recognition.api.face_distance([vectors[0][0]], vectors[1][0])
+                            # result = face_recognition.api.compare_faces([vectors[0][0]], vectors[1][0])
+                            # print (distance, result)
+                            # score = self.face_confidence(distance[0])
+                            score = 1.3 - distance[0]
+                            score = min(1.0, score)
 
-                        # print ('Score: ', score)
+                            # print ('Score: ', score)
 
-                        if score <0.6:
-                            Clock.schedule_once(partial(self.change_bg_img, self.bg_red), 0)
-                            self.header_bar.score_text = f'Match Score: {str(round(score*100, 1))}%'
-                        elif score >=0.6 and score <0.8:
-                            Clock.schedule_once(partial(self.change_bg_img, self.bg_yellow), 0)
-                            self.header_bar.score_text = f'Match Score: {str(round(score*100, 1))}%'
+                            if score <0.6:
+                                Clock.schedule_once(partial(self.change_bg_img, self.bg_red), 0)
+                                self.header_bar.score_text = f'Match Score: {str(round(score*100, 1))}%'
+                            elif score >=0.6 and score <0.8:
+                                Clock.schedule_once(partial(self.change_bg_img, self.bg_yellow), 0)
+                                self.header_bar.score_text = f'Match Score: {str(round(score*100, 1))}%'
 
-                        # MATCH OK
-                        elif score >= 0.8:
-                            Clock.schedule_once(partial(self.change_bg_img, self.bg_green), 0)
-                            Clock.schedule_once(partial(self.change_title_img, self.title_match_ok), 0)
-                            self.header_bar.score_text = f'Match Score: {str(round(score*100, 1))}%'
-                
+                            # MATCH OK
+                            elif score >= 0.8:
+                                Clock.schedule_once(partial(self.change_bg_img, self.bg_green), 0)
+                                Clock.schedule_once(partial(self.change_title_img, self.title_match_ok), 0)
+                                self.header_bar.score_text = f'Match Score: {str(round(score*100, 1))}%'
+                    
+                    else:
+                        Clock.schedule_once(partial(self.change_bg_img, self.bg_normal), 0)
+                        Clock.schedule_once(partial(self.change_title_img, self.title), 0)
+                        self.header_bar.score_text = 'Match Score: 0.0%'
+
+
+                    frame = cv.flip(frame,0)
+                    frame = frame[:,:,::-1]
+                    # print (frame.dtype, frame.shape)
+                    self.on_frame_(frame)
+                    cv.waitKey(1)
+                    t2 = time.time()
+
                 else:
-                    Clock.schedule_once(partial(self.change_bg_img, self.bg_normal), 0)
-                    Clock.schedule_once(partial(self.change_title_img, self.title), 0)
-                    self.header_bar.score_text = 'Match Score: 0.0%'
-
-
-                frame = cv.flip(frame,0)
-                frame = frame[:,:,::-1]
-                # print (frame.dtype, frame.shape)
-                self.on_frame_(frame)
-                cv.waitKey(1)
-                t2 = time.time()
-
-            else:
-                print ('End of the stream')
-                # Create blank texture
-                self.texture = Texture.create()
-                # Reset play button image and disable it      
-                # Clock.schedule_once(partial(self.change_play_btn_img, 'images/play.png'), 0)
-                # Reset the playing flag
-                self.state = 'stop'
-                # Release video capture object
-                self.video_cap.release()
-                break
+                    # Frame error. Reinit capture object
+                    self.video_cap = self.init_video_cap()
+                    # print ('End of the stream')
+                    # # Create blank texture
+                    # self.texture = Texture.create()
+                    # # Reset play button image and disable it      
+                    # # Clock.schedule_once(partial(self.change_play_btn_img, 'images/play.png'), 0)
+                    # # Reset the playing flag
+                    # self.state = 'stop'
+                    # # Release video capture object
+                    # self.video_cap.release()
+                    # break
+            
+            except:
+                print ('Error ignored. Reinit capture object')
+                self.video_cap = self.init_video_cap()
+                pass
 
 
     # Update the livestream texture with new frame
