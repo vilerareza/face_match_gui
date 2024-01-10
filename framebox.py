@@ -85,8 +85,8 @@ class FrameBox(Image):
             #self.rtsp = self.manager.rtsp
 
             # Initialize capture object
-            # self.video_cap = cv.VideoCapture(0)
-            self.video_cap = cv.VideoCapture('rtsp://192.168.1.39:554/Streaming/channels/101')
+            self.video_cap = cv.VideoCapture(0)
+            # self.video_cap = cv.VideoCapture('rtsp://192.168.1.39:554/Streaming/channels/101')
 
             ### Get video properties            
             frame_w = int(self.video_cap.get(cv.CAP_PROP_FRAME_WIDTH))
@@ -133,6 +133,7 @@ class FrameBox(Image):
             if ret:
                 # Resize the frame to the adjusted size
                 frame = cv.resize(frame, (frame_w, frame_h))
+                print(frame_w, frame_h)
                 faces, frame = self.detect_face(frame)
 
                 if len(faces)==2:
@@ -148,18 +149,20 @@ class FrameBox(Image):
                         # result = face_recognition.api.compare_faces([vectors[0][0]], vectors[1][0])
                         # print (distance, result)
                         # score = self.face_confidence(distance[0])
-                        score = 1.0 - distance[0]
+                        score = 1.3 - distance[0]
+                        score = min(1.0, score)
+
                         # print ('Score: ', score)
 
-                        if score <0.45:
+                        if score <0.6:
                             Clock.schedule_once(partial(self.change_bg_img, self.bg_red), 0)
                             self.header_bar.score_text = f'Match Score: {str(round(score*100, 1))}%'
-                        elif score >=0.45 and score <0.5:
+                        elif score >=0.6 and score <0.8:
                             Clock.schedule_once(partial(self.change_bg_img, self.bg_yellow), 0)
                             self.header_bar.score_text = f'Match Score: {str(round(score*100, 1))}%'
 
                         # MATCH OK
-                        elif score >= 0.5:
+                        elif score >= 0.8:
                             Clock.schedule_once(partial(self.change_bg_img, self.bg_green), 0)
                             Clock.schedule_once(partial(self.change_title_img, self.title_match_ok), 0)
                             self.header_bar.score_text = f'Match Score: {str(round(score*100, 1))}%'
