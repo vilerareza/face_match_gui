@@ -82,15 +82,17 @@ class FrameBox(Image):
 
         try:
 
-            #self.rtsp = self.manager.rtsp
+            # self.rtsp = self.manager.rtsp
 
             # Initialize capture object
-            self.video_cap = cv.VideoCapture(0)
-            # self.video_cap = cv.VideoCapture('rtsp://192.168.1.39:554/Streaming/channels/101')
+            # self.video_cap = cv.VideoCapture(0)
+            self.video_cap = cv.VideoCapture('rtsp://admin:Smartcity07@192.168.1.39:554/Streaming/channels/101')
 
             ### Get video properties            
-            frame_w = int(self.video_cap.get(cv.CAP_PROP_FRAME_WIDTH))
-            frame_h = int(self.video_cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+            # frame_w = int(self.video_cap.get(cv.CAP_PROP_FRAME_WIDTH))
+            # frame_h = int(self.video_cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+            frame_w = 640
+            frame_h = 480
             # print (frame_w, frame_h)
             # Calculate adjusted  size (640px target width)
             # new_frame_w = 640
@@ -118,8 +120,6 @@ class FrameBox(Image):
 
             elif self.state == 'stop':
                 # Stop
-                # Reset play button image and disable it      
-                # Clock.schedule_once(partial(self.change_play_btn_img, 'images/play.png'), 0)
                 # Release video capture object
                 self.video_cap.release()
                 # Create blank texture
